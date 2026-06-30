@@ -1,0 +1,45 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: jerney-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-jerney_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-jerney_pass_2026}
+      POSTGRES_DB: ${DB_NAME:-jerney_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - jerney-postgres-data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend
+    container_name: jerney-backend
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      NODE_ENV: production
+      PORT: ${PORT:-5000}
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-jerney_user}
+      DB_PASSWORD: ${DB_PASSWORD:-jerney_pass_2026}
+      DB_NAME: ${DB_NAME:-jerney_db}
+    ports:
+      - "5000:5000"
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: jerney-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+
+volumes:
+  jerney-postgres-data:
+
